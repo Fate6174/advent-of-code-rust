@@ -25,7 +25,7 @@ pub fn part_one(input: &str) -> Option<u64> {
         } else {
             ""
         };
-        // println!("{old_dial_state} rotated by {rotation} -> {dial_state}.{ended_at_zero_str}");
+        println!("{old_dial_state} rotated by {rotation} -> {dial_state}.{ended_at_zero_str}");
     }
     println!("The dial was {num_at_zero} times at the position 0 at the end of an rotation.");
     Some(num_at_zero)
@@ -70,7 +70,7 @@ pub fn part_two(input: &str) -> Option<u64> {
         } else {
             "".to_string()
         };
-        // println!("{old_dial_state} rotated by {rotation} -> {dial_state}.{traverse_zero_str}");
+        println!("{old_dial_state} rotated by {rotation} -> {dial_state}.{traverse_zero_str}");
     }
     println!(
         "The dial was {num_at_zero} times at the position 0 during or at the end of an rotation."
