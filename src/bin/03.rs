@@ -26,7 +26,7 @@ pub fn compute_batteries(bank: &str, num_batteries: usize) -> u64 {
                 max_jolt = *jolt
             }
         }
-        out += max_jolt * 10u64.pow(num_batteries as u32 - 1 - i as u32);
+        out = 10 * out + max_jolt;
         current_idx += 1
     }
     out
