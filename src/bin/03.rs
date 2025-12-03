@@ -10,10 +10,7 @@ pub fn part_two(input: &str) -> Option<u64> {
 
 pub fn compute_batteries(bank: &str, num_batteries: usize) -> u64 {
     let mut out = 0;
-    let bank: Vec<u64> = bank
-        .chars()
-        .map(|c| c.to_digit(10).expect("Failed to parse bank into digits.") as u64)
-        .collect();
+    let bank: Vec<u64> = bank.as_bytes().iter().map(|b| (b - b'0') as u64).collect();
     let bank_length = bank.len();
     let mut current_idx = 0;
     for i in 0..num_batteries {
