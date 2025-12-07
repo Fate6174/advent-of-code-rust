@@ -1,48 +1,31 @@
-use std::collections::HashMap;
-
 advent_of_code::solution!(7);
 
 pub fn part_one(input: &str) -> Option<u64> {
-    let (_, _, out) = fill_manifold(input);
-    Some(out as u64)
+    let (_, _, splits) = fill_manifold(input);
+    Some(splits as u64)
 }
 
 pub fn part_two(input: &str) -> Option<u64> {
     let (manifold, beam_starts, _) = fill_manifold(input);
     let (m, n) = (manifold.len(), manifold[0].len());
-    let mut cache = HashMap::new();
-    for j in 0..n {
-        if manifold[m - 1][j] == '|' {
-            cache.insert((m - 1, j), 1 as u64);
-        }
-    }
+    let mut cache = vec![vec![1; n]; m];
     for i in (1..m - 1).rev() {
         for j in 0..n {
-            if manifold[i][j] == '|' {
-                match manifold[i + 1][j] {
-                    '|' => {
-                        cache.insert((i, j), cache.get(&(i + 1, j)).copied().unwrap());
-                    }
-                    '^' => {
-                        let mut value = 0;
-                        if j > 0 {
-                            value += cache.get(&(i + 1, j - 1)).copied().unwrap();
-                        }
-                        if j < n - 1 {
-                            value += cache.get(&(i + 1, j + 1)).copied().unwrap();
-                        }
-                        cache.insert((i, j), value);
-                    }
-                    _ => panic!(),
+            match manifold[i + 1][j] {
+                '|' => {
+                    cache[i][j] = cache[i + 1][j];
                 }
+                '^' => {
+                    let mut value = 0;
+                    value += cache[i + 1].get(j - 1).copied().unwrap_or(0);
+                    value += cache[i + 1].get(j + 1).copied().unwrap_or(0);
+                    cache[i][j] = value;
+                }
+                _ => {}
             }
         }
     }
-    let mut out = 0;
-    for (i, j) in beam_starts {
-        out += cache.get(&(i + 1, j)).copied().unwrap();
-    }
-    Some(out)
+    Some(beam_starts.iter().map(|&(i, j)| cache[i + 1][j]).sum())
 }
 
 fn fill_manifold(input: &str) -> (Vec<Vec<char>>, Vec<(usize, usize)>, u64) {
@@ -50,44 +33,38 @@ fn fill_manifold(input: &str) -> (Vec<Vec<char>>, Vec<(usize, usize)>, u64) {
         .lines()
         .map(|line| line.chars().collect::<Vec<_>>())
         .collect::<Vec<_>>();
-    let (m, n) = (manifold.len(), manifold[0].len());
     let beam_starts = manifold
         .iter()
         .enumerate()
-        .map(|(i, row)| {
+        .flat_map(|(i, row)| {
             row.iter().enumerate().filter_map(
                 move |(j, &item)| {
                     if item == 'S' { Some((i, j)) } else { None }
                 },
             )
         })
-        .flatten()
         .collect::<Vec<_>>();
     let mut beam_positions = beam_starts.clone();
-    let mut out = 0;
-    while !beam_positions.is_empty() {
-        let (a, b) = beam_positions.pop().unwrap();
-        if a == m - 1 {
-            continue;
-        }
-        match manifold[a + 1][b] {
-            '.' => {
+    let mut splits = 0;
+    loop {
+        let Some((a, b)) = beam_positions.pop() else {
+            break;
+        };
+        match manifold.get(a + 1).and_then(|row| row.get(b)) {
+            None => {}
+            Some('.') => {
                 manifold[a + 1][b] = '|';
                 beam_positions.push((a + 1, b))
             }
-            '^' => {
-                out += 1;
-                if b > 0 && manifold[a + 1][b - 1] == '.' {
-                    beam_positions.push((a, b - 1))
-                }
-                if b < n - 1 && manifold[a + 1][b + 1] == '.' {
-                    beam_positions.push((a, b + 1))
-                }
+            Some('^') => {
+                splits += 1;
+                beam_positions.push((a, b - 1));
+                beam_positions.push((a, b + 1));
             }
-            _ => continue,
+            _ => {}
         }
     }
-    (manifold, beam_starts, out)
+    (manifold, beam_starts, splits)
 }
 
 #[cfg(test)]
