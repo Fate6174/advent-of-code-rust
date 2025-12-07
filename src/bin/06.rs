@@ -31,10 +31,7 @@ pub fn part_one(input: &str) -> Option<u64> {
 }
 
 pub fn part_two(input: &str) -> Option<u64> {
-    let parsed = input
-        .lines()
-        .map(|line| line.as_bytes())
-        .collect::<Vec<_>>();
+    let parsed = input.lines().map(str::as_bytes).collect::<Vec<_>>();
     let num_rows = parsed.len();
     let mut temp = Vec::new();
     let mut out = 0;
