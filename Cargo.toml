@@ -29,3 +29,5 @@ tinyjson = "2.5.1"
 
 # Solution dependencies
 num = "0.4.3"
+highs = "2.0.0"
+good_lp = { version = "1.14.2", features = ["highs"], default-features = false }
