@@ -1,4 +1,4 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 
 advent_of_code::solution!(8);
 
@@ -19,10 +19,7 @@ pub fn part_two(input: &str) -> Option<u64> {
     Some(out)
 }
 
-fn parse_input(
-    input: &str,
-    num_connections: Option<usize>,
-) -> (HashMap<usize, HashSet<usize>>, u64) {
+fn parse_input(input: &str, num_connections: Option<usize>) -> (HashMap<usize, Vec<usize>>, u64) {
     let parsed = input
         .lines()
         .skip(1)
@@ -39,7 +36,7 @@ fn parse_input(
             parsed
                 .iter()
                 .enumerate()
-                .skip_while(move |(idx2, _)| *idx2 <= idx1)
+                .skip(idx1 + 1)
                 .map(move |(idx2, coord2)| {
                     (
                         (coord1[0] - coord2[0]).pow(2)
@@ -53,32 +50,30 @@ fn parse_input(
         .flatten()
         .collect::<Vec<_>>();
     distances.sort_by_key(|tuple| tuple.0);
-    let mut junkbox_to_circuit_id = HashMap::new();
-    for idx in 0..parsed.len() {
-        junkbox_to_circuit_id.insert(idx, idx);
-    }
-    let mut circuit_id_to_junkboxes = HashMap::new();
-    for idx in 0..parsed.len() {
-        circuit_id_to_junkboxes.insert(idx, HashSet::from([idx]));
-    }
+    // let mut junkbox_to_circuit_id = HashMap::new();
+    let mut junkbox_to_circuit_id: HashMap<usize, usize> =
+        HashMap::from_iter((0..parsed.len()).map(|idx| (idx, idx)));
+    let mut circuit_id_to_junkboxes =
+        HashMap::from_iter((0..parsed.len()).map(|idx| (idx, vec![idx])));
     let mut out = 0;
-    for (_, idx1, idx2) in &distances[0..num_connections.unwrap_or(distances.len())] {
+    for &(_, idx1, idx2) in &distances[0..num_connections.unwrap_or(distances.len())] {
         let circuit_id1 = junkbox_to_circuit_id[&idx1];
         let circuit_id2 = junkbox_to_circuit_id[&idx2];
         if circuit_id1 == circuit_id2 {
             continue;
         }
-        let circuit_union = circuit_id_to_junkboxes[&circuit_id1]
-            .union(&circuit_id_to_junkboxes[&circuit_id2])
-            .copied()
-            .collect::<HashSet<_>>();
-        for junkbox in &circuit_union {
-            junkbox_to_circuit_id.insert(*junkbox, circuit_id1);
+        let mut circuit2 = circuit_id_to_junkboxes
+            .remove(&circuit_id2)
+            .unwrap_or(vec![]);
+        circuit_id_to_junkboxes
+            .get_mut(&circuit_id1)
+            .unwrap()
+            .append(&mut circuit2);
+        for &junkbox in &circuit_id_to_junkboxes[&circuit_id1] {
+            junkbox_to_circuit_id.insert(junkbox, circuit_id1);
         }
-        circuit_id_to_junkboxes.remove(&circuit_id2);
-        circuit_id_to_junkboxes.insert(circuit_id1, circuit_union);
         if circuit_id_to_junkboxes.keys().len() == 1 {
-            out = parsed[*idx1][0] * parsed[*idx2][0]
+            out = parsed[idx1][0] * parsed[idx2][0]
         }
     }
     (circuit_id_to_junkboxes, out as u64)
