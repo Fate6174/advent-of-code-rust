@@ -1,4 +1,4 @@
-use good_lp::{Expression, Solution, SolverModel, constraint, default_solver, variables};
+use good_lp::{Expression, Solution, SolverModel, constraint, highs, variables};
 use std::cmp::min;
 
 advent_of_code::solution!(10);
@@ -96,7 +96,7 @@ pub fn part_two(input: &str) -> Option<u64> {
         }
         let solution = vars
             .minimise(objective)
-            .using(default_solver)
+            .using(highs)
             .with_all(constraints)
             .solve()
             .ok()?;
